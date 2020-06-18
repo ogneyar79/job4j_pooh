@@ -23,7 +23,7 @@ public class BrokerMessage implements IBroker {
 
     @Override
     public boolean hendlMessage(MessageB message) {
-        return message.getType().equals("topic") ? topicMap.get(message.getKey()).add(message.getText()) : queue.get(message.getKey()).add(message.getText());
+        return message.getType().equals("topic") ? topicMap.get(message.getKeyValue()).add(message.getTextValue()) : queue.get(message.getKeyValue()).add(message.getTextValue());
     }
 
     @Override
