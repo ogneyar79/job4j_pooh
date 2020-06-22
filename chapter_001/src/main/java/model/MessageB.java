@@ -6,10 +6,10 @@ public class MessageB {
     private final String keyValue;
     private final String textValue;
 
-    public MessageB(String type, String keyValue, String textValue) {
+    public MessageB(String type, String keyValue, String text) {
         this.type = type;
         this.keyValue = keyValue;
-        this.textValue = textValue;
+        this.textValue = text;
     }
 
     public String getType() {
