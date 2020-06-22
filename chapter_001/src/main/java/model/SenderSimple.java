@@ -41,17 +41,18 @@ public class SenderSimple implements ClientSender, Closeable {
         return new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
     }
 
-}
 
     private BufferedReader createReader() throws IOException {
         return new BufferedReader(new InputStreamReader(socket.getInputStream()));
     }
+
     @Override
     public void close() throws IOException {
         writer.close();
         reader.close();
         socket.close();
     }
+
     @Override
     public void send(String message) {
         writeLine(message);
