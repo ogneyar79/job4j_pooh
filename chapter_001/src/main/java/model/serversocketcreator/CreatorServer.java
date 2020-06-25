@@ -1,4 +1,4 @@
-package model.message;
+package model.serversocketcreator;
 
 import java.io.*;
 import java.net.ServerSocket;
