@@ -1,4 +1,4 @@
-package model;
+package model.message;
 
 public class MessageB {
 

@@ -1,4 +1,6 @@
-package model;
+package model.broker;
+
+import model.message.MessageB;
 
 public interface IBroker {
 
