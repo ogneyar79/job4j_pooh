@@ -1,6 +1,10 @@
 package model.broker;
 
+import model.connection.Conection;
+import model.connection.Message;
+
 public interface IBrokerSender {
 
-    void send(String message);
+
+    Message sendResult(String id);
 }

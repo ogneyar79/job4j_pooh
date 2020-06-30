@@ -10,6 +10,9 @@ import java.util.concurrent.BlockingDeque;
 public class ChanalQueue implements IChanalMessage {
 
     private final ServerSocket server;
+    public void stsrtServer(int port) {
+
+    }
 
     // id and socket need to be there
     BlockingDeque<ISubscriber> subscribers;
@@ -17,6 +20,8 @@ public class ChanalQueue implements IChanalMessage {
     public ChanalQueue(ServerSocket server) {
         this.server = server;
     }
+
+
 
     @Override
     public void send(String message) {
