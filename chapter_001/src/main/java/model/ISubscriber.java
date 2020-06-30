@@ -1,8 +1,11 @@
 package model;
 
+import model.connection.Message;
+
 public interface ISubscriber {
 
     void onMessage(String messageJson);
-    void subscribe(String data);
+
+    void send(Message message);
 
 }
