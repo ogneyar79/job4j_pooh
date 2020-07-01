@@ -105,7 +105,7 @@ public class ServerPro {
             }
         }
 
-        public void messageToServer(Conection conection, Message messageId) {
+        public void communicateWithClient(Conection conection, Message messageId) {
             while (Thread.interrupted()) {
                 String userId = messageId.getTextMessage();
                 if (queueSender.checkSubscriberId(userId)) {
@@ -142,7 +142,7 @@ public class ServerPro {
             try {
                 Conection conection = new Conection(socket);
                 Message messageId = requestAddSubscriber(conection);
-                messageToServer(conection, messageId);
+                communicateWithClient(conection, messageId);
             } catch (IOException e) {
                 System.err.println(" ERROR during Communicate Server and Subscriber \n");
                 e.printStackTrace();

@@ -1,6 +1,5 @@
-package model;
+package model.broker;
 
-import model.broker.BrokerMessage;
 import model.message.MessageB;
 
 import java.net.ServerSocket;

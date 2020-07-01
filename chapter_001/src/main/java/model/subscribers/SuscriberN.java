@@ -1,6 +1,5 @@
 package model.subscribers;
 
-import model.ISubscriber;
 import model.connection.Conection;
 import model.connection.Message;
 import model.connection.MessageType;

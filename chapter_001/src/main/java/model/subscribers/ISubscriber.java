@@ -1,4 +1,4 @@
-package model;
+package model.subscribers;
 
 import model.connection.Message;
 

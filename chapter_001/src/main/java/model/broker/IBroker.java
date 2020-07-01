@@ -8,5 +8,4 @@ public interface IBroker {
 
     boolean hendlMessage(MessageB message);
 
-    boolean sendMessage(MessageB message);
 }

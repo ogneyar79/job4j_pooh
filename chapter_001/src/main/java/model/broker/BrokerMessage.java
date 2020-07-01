@@ -23,6 +23,7 @@ public class BrokerMessage implements IBroker, Closeable {
 
     private ConcurrentHashMap<String, Queue<MessageB>> topicMap = new ConcurrentHashMap();
     private ConcurrentHashMap<String, Queue<MessageB>> queue = new ConcurrentHashMap();
+    private volatile boolean changerTopic = false;
 
 
     public BrokerMessage(ServerSocket server, HandlerWithJson handler) {
@@ -79,10 +80,30 @@ public class BrokerMessage implements IBroker, Closeable {
     }
 
     @Override
-    public boolean hendlMessage(MessageB message) { return message.getType().equals("topic") ? topicMap.get(message.getKeyValue()).add(message) : queue.get(message.getKeyValue()).add(message); }
-    @Override
-    public boolean sendMessage(MessageB message) {
-        return false;
+    public boolean hendlMessage(MessageB message) {
+        if (message.getType().equals("topic")) {
+            if (!topicMap.containsKey(message.getKeyValue())) {
+                topicMap.put(message.getKeyValue(), new ConcurrentLinkedQueue<>());
+                this.setChangerTopic(true);
+                return topicMap.get(message.getKeyValue()).add(message);
+            }
+            this.setChangerTopic(true);
+            return topicMap.get(message.getKeyValue()).add(message);
+        } else {
+            if (!queue.containsKey(message.getKeyValue())) {
+                queue.put(message.getKeyValue(), new ConcurrentLinkedQueue<>());
+                return queue.get(message.getKeyValue()).add(message);
+            }
+            return queue.get(message.getKeyValue()).add(message);
+        }
+    }
+
+    public void setChangerTopic(boolean changerTopic) {
+        this.changerTopic = changerTopic;
+    }
+
+    public boolean isChangerTopic() {
+        return changerTopic;
     }
 
     public HandlerWithJson getHandler() {
