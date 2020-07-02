@@ -21,10 +21,11 @@ public class BrokerMessage implements IBroker, Closeable {
 
     private Queue<MessageB> firstIn = new ConcurrentLinkedQueue();
 
-    private ConcurrentHashMap<String, Queue<MessageB>> topicMap = new ConcurrentHashMap();
-    private ConcurrentHashMap<String, Queue<MessageB>> queue = new ConcurrentHashMap();
-    private volatile boolean changerTopic = false;
+    private ConcurrentHashMap<String, ConcurrentLinkedQueue<MessageB>> topicMap = new ConcurrentHashMap();
+    private ConcurrentHashMap<String, ConcurrentLinkedQueue<MessageB>> queue = new ConcurrentHashMap();
+    private final ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> topicSubscriber = new ConcurrentHashMap<>();
 
+    private volatile boolean changerTopic = false;
 
     public BrokerMessage(ServerSocket server, HandlerWithJson handler) {
         this.handler = handler;
@@ -83,7 +84,7 @@ public class BrokerMessage implements IBroker, Closeable {
     public boolean hendlMessage(MessageB message) {
         if (message.getType().equals("topic")) {
             if (!topicMap.containsKey(message.getKeyValue())) {
-                topicMap.put(message.getKeyValue(), new ConcurrentLinkedQueue<>());
+                topicMap.put(message.getKeyValue(), new ConcurrentLinkedQueue<MessageB>());
                 this.setChangerTopic(true);
                 return topicMap.get(message.getKeyValue()).add(message);
             }
@@ -91,11 +92,16 @@ public class BrokerMessage implements IBroker, Closeable {
             return topicMap.get(message.getKeyValue()).add(message);
         } else {
             if (!queue.containsKey(message.getKeyValue())) {
-                queue.put(message.getKeyValue(), new ConcurrentLinkedQueue<>());
+                queue.put(message.getKeyValue(), new ConcurrentLinkedQueue<MessageB>());
                 return queue.get(message.getKeyValue()).add(message);
             }
             return queue.get(message.getKeyValue()).add(message);
         }
+    }
+
+    public void addNewTopic(String topic) {
+        topicMap.put(topic, new ConcurrentLinkedQueue<MessageB>());
+        topicSubscriber.put(topic, new ConcurrentLinkedQueue<String>());
     }
 
     public void setChangerTopic(boolean changerTopic) {
@@ -114,11 +120,15 @@ public class BrokerMessage implements IBroker, Closeable {
         return firstIn;
     }
 
-    public ConcurrentHashMap<String, Queue<MessageB>> getTopicMap() {
-        return topicMap;
+    public ConcurrentHashMap<String, ConcurrentLinkedQueue<MessageB>> getTopicMap() {
+        return this.topicMap;
     }
 
-    public ConcurrentHashMap<String, Queue<MessageB>> getQueue() {
+    public ConcurrentHashMap<String, ConcurrentLinkedQueue<MessageB>> getQueue() {
         return queue;
+    }
+
+    public ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> getTopicSubscriber() {
+        return topicSubscriber;
     }
 }
