@@ -2,7 +2,6 @@ package model.broker;
 
 import model.message.MessageB;
 
-import java.util.ArrayList;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -41,6 +40,14 @@ public class SubscriberStore {
     public void deleteSubscriber(String id) {
         subscriber.remove(id);
         mailBoxes.remove(id);
+    }
+
+    public ConcurrentHashMap<String, String> getSubscriber() {
+        return subscriber;
+    }
+
+    public ConcurrentHashMap<String, Queue<MessageB>> getMailBoxes() {
+        return mailBoxes;
     }
 
     public void addMessage(String id, MessageB message) {

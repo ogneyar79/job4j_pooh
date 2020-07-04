@@ -29,7 +29,6 @@ public class InnerBroker {
         @Override
         public void run() {
             InnerBroker.this.work();
-
         }
     }
 }

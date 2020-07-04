@@ -1,6 +1,8 @@
 package model.broker;
 
+import model.HandlerWithJson;
 import model.connection.Message;
+import model.connection.MessageType;
 import model.message.MessageB;
 
 import java.util.Iterator;
@@ -12,6 +14,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class TopicSender implements IBrokerSender {
 
     private final BrokerMessage brokerMessage;
+    HandlerWithJson model = new HandlerWithJson();
 
     // String topic and queue different message
     private final ConcurrentHashMap<String, ConcurrentLinkedQueue<MessageB>> topic;
@@ -30,6 +33,26 @@ public class TopicSender implements IBrokerSender {
     public void setSubscriber(String id, String subject) {
         subscriberStore.addSubscriber(id, subject);
         topicSubscribe.get(subject).add(id);
+    }
+
+
+    public boolean checkSubscriberId(String id) {
+        return subscriberStore.getSubscriber().containsKey(id);
+    }
+
+    public boolean checkMessage(String id) {
+
+        return !subscriberStore.getMailBoxes().get(id).isEmpty();
+    }
+
+    private MessageB getMessageFromQueue(String id) {
+
+        return subscriberStore.getMailBoxes().get(id).poll();
+    }
+
+    private String getJSon(String id) {
+        MessageB message = getMessageFromQueue(id);
+        return model.konvertJson(message);
     }
 
     public boolean searchNewMessage() {
@@ -57,6 +80,6 @@ public class TopicSender implements IBrokerSender {
 
     @Override
     public Message sendResult(String id) {
-        return null;
+        return checkMessage(id) ? new Message(MessageType.JSON, getJSon(id)) : new Message(MessageType.USER_INFO, " NO SIBSCRIBE NOW");
     }
 }
