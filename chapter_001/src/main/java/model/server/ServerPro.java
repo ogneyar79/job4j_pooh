@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class ServerPro {
+public class ServerPro implements IServerPro{
 
     private ServerSocket serverSocket;
     boolean isServerStart;
@@ -22,6 +22,7 @@ public class ServerPro {
         this.queueSender = queueSender;
     }
 
+    @Override
     public void startServer(int port) {
         try {
             serverSocket = new ServerSocket(port);
@@ -33,6 +34,7 @@ public class ServerPro {
         }
     }
 
+    @Override
     public void stopServer() {
         try {
             if (serverSocket != null && !serverSocket.isClosed()) {
@@ -47,7 +49,8 @@ public class ServerPro {
         }
     }
 
-    void acceptServer() {
+    @Override
+    public void acceptServer() {
         while (true) {
             try {
                 Socket socket = serverSocket.accept();
@@ -59,7 +62,8 @@ public class ServerPro {
         }
     }
 
-    public void deleteConection(String id) {
+    @Override
+    public void deleteConnection(String id) {
         Conection currentConnection = subConections.getSubscribersConect().get(id);
         subConections.removeConectionSub(id);
         Thread.currentThread().interrupt();
@@ -113,7 +117,7 @@ public class ServerPro {
                         conection.send(new Message(MessageType.USER_INFO, " WE CHECK Your SUBSCRIBE"));
                         conection.send(queueSender.sendResult(userId));
                         conection.send(new Message(MessageType.DISABLE_USER, " WE handed Result"));
-                        deleteConection(userId);
+                        deleteConnection(userId);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -121,7 +125,7 @@ public class ServerPro {
                     try {
                         conection.send(new Message(MessageType.USER_INFO, "No SUBSCRIBER WITH ID"));
                         conection.send(new Message(MessageType.REFUSING, "REFUSE"));
-                        deleteConection(userId);
+                        deleteConnection(userId);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -129,7 +133,7 @@ public class ServerPro {
                 try {
                     Message message = conection.receive();
                     if (message.getTypeMessage() == MessageType.DISABLE_USER) {
-                        deleteConection(userId);
+                        deleteConnection(userId);
                     }
                 } catch (Exception e) {
 
