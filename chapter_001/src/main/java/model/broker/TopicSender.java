@@ -40,8 +40,8 @@ public class TopicSender implements IBrokerSender {
         return subscriberStore.getSubscriber().containsKey(id);
     }
 
+    //checking message from mailBox
     public boolean checkMessage(String id) {
-
         return !subscriberStore.getMailBoxes().get(id).isEmpty();
     }
 
