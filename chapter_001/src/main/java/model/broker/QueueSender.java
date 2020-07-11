@@ -9,11 +9,12 @@ import model.message.MessageB;
 import java.io.IOException;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class QueueSender implements IBrokerSender {
 
     private final BrokerMessage brokerMessage;
-    private final ConcurrentHashMap<String, Queue<MessageB>> queue;
+    private final ConcurrentHashMap<String, ConcurrentLinkedQueue<MessageB>> queue;
     private final ConcurrentHashMap<String, String> subscriber;
     // IChanalMessage chanal;
     HandlerWithJson model = new HandlerWithJson();
