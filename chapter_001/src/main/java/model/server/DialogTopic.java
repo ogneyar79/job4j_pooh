@@ -28,10 +28,7 @@ public class DialogTopic {
                 conection.send(sender.sendResult(userId));
             }
             conection.send(new Message(MessageType.DISABLE_USER, " WE handed Result"));
-
             System.err.println(" WE interrupt connection with id \n" + "" + userId + " and Socet Adress" + "" + conection.getRemoteSocetAdres());
-            conection.close();
-
         } catch (IOException e) {
             e.printStackTrace();
         }
