@@ -1,4 +1,6 @@
-package model;
+package model.server.roughcopy;
+
+import model.server.roughcopy.ClientSender;
 
 import java.io.*;
 import java.net.Socket;
