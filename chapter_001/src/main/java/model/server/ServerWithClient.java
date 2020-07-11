@@ -1,5 +1,8 @@
-package model.broker;
+package model.server;
 
+import model.broker.QueueSender;
+import model.broker.SubscriberStore;
+import model.broker.TopicSender;
 import model.connection.Conection;
 import model.connection.Message;
 import model.connection.MessageType;

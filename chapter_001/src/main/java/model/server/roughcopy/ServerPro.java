@@ -1,15 +1,17 @@
-package model.server;
+package model.server.roughcopy;
 
 import model.broker.QueueSender;
 import model.connection.Conection;
 import model.connection.Message;
 import model.connection.MessageType;
+import model.server.IServerPro;
+import model.server.ModelGuiServer;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class ServerPro implements IServerPro{
+public class ServerPro implements IServerPro {
 
     private ServerSocket serverSocket;
     boolean isServerStart;
@@ -94,14 +96,13 @@ public class ServerPro implements IServerPro{
                     conection.send(new Message(MessageType.REQUEST_SUBSCRIBER_ID));
                     Message responseMessage = conection.receive();
                     String subscriberId = responseMessage.getTextMessage();
-                    if (responseMessage.getTypeMessage() == MessageType.SUBSCRIBER_ID && subscriberId != null && !subscriberId.isBlank() && !subConections.getSubscribersConect().containsKey(subscriberId)) {
+                    if (responseMessage.getTypeMessage() == MessageType.SUBSCRIBER_ID && subscriberId != null && !subConections.getSubscribersConect().containsKey(subscriberId)) {
                         subConections.addSub(subscriberId, conection);
                         conection.send(new Message(MessageType.ID_ACCEPTED));
                         return new Message(MessageType.ID_USED, subscriberId);
                     } else {
                         conection.send(new Message(MessageType.ID_USED));
                         count++;
-
                     }
                 } catch (Exception e) {
                     System.err.println("ERROR During adding new subscriber");
@@ -110,7 +111,7 @@ public class ServerPro implements IServerPro{
         }
 
         public void communicateWithClient(Conection conection, Message messageId) {
-            while (Thread.interrupted()) {
+            while (!Thread.interrupted()) {
                 String userId = messageId.getTextMessage();
                 if (queueSender.checkSubscriberId(userId)) {
                     try {

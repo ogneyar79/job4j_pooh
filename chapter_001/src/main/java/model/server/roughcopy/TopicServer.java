@@ -1,30 +1,34 @@
-package model.server;
+package model.server.roughcopy;
 
 import model.broker.SubscriberStore;
 import model.broker.TopicSender;
 import model.connection.Conection;
 import model.connection.Message;
 import model.connection.MessageType;
+import model.server.IServerPro;
+import model.server.ModelGuiServer;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class TopicServer implements IServerPro {
+public class TopicServer implements IServerPro, Runnable {
 
 
     private ServerSocket serverSocket;
     boolean isServerStart;
+
+    private final int port;
 
     ModelGuiServer subConections;
 
     private final TopicSender topicSender;
     //  private final SubscriberStore subscriberStore;
 
-    public TopicServer(ServerSocket serverSocket, TopicSender topicSender, SubscriberStore subscriberStore) {
+    public TopicServer(ServerSocket serverSocket, TopicSender topicSender, int port) {
         this.serverSocket = serverSocket;
         this.topicSender = topicSender;
-        //      this.subscriberStore = subscriberStore;
+        this.port = port;
     }
 
     @Override
@@ -81,14 +85,13 @@ public class TopicServer implements IServerPro {
                 conection.send(new Message(MessageType.REQUEST_SUBSCRIBER_ID));
                 Message responseMessage = conection.receive();
                 String subscriberId = responseMessage.getTextMessage();
-                if (responseMessage.getTypeMessage() == MessageType.SUBSCRIBER_ID && subscriberId != null && !subscriberId.isBlank() && !subConections.getSubscribersConect().containsKey(subscriberId)) {
+                if (responseMessage.getTypeMessage() == MessageType.SUBSCRIBER_ID && subscriberId != null && !subConections.getSubscribersConect().containsKey(subscriberId)) {
                     subConections.addSub(subscriberId, conection);
                     conection.send(new Message(MessageType.ID_ACCEPTED));
                     return new Message(MessageType.ID_USED, subscriberId);
                 } else {
                     conection.send(new Message(MessageType.ID_USED));
                     count++;
-
                 }
             } catch (Exception e) {
                 System.err.println("ERROR During adding new subscriber");
@@ -105,7 +108,7 @@ public class TopicServer implements IServerPro {
 
                     do {
                         conection.send(topicSender.sendResult(userId));
-                        conection.send(new Message(MessageType.DISABLE_USER, " WE handed Result"));
+                        conection.send(new Message(MessageType.USER_INFO, " WE handed Result"));
                     }
                     while (topicSender.checkMessage(userId));
                     deleteConnection(userId);
@@ -114,7 +117,7 @@ public class TopicServer implements IServerPro {
                 }
             } else {
                 try {
-                    conection.send(new Message(MessageType.USER_INFO, "No SUBSCRIBER WITH ID"));
+                    conection.send(new Message(MessageType.USER_INFO, "No Your ID"));
                     conection.send(new Message(MessageType.REFUSING, "REFUSE"));
                     deleteConnection(userId);
                 } catch (IOException e) {
@@ -127,7 +130,6 @@ public class TopicServer implements IServerPro {
                     deleteConnection(userId);
                 }
             } catch (Exception e) {
-
             }
         }
     }
@@ -143,5 +145,11 @@ public class TopicServer implements IServerPro {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void run() {
+        startServer(this.port);
+        acceptServer();
     }
 }
