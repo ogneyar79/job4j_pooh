@@ -25,11 +25,8 @@ public class DialogQueue implements Runnable {
             conection.send(new Message(MessageType.USER_INFO, " WE CHECK Your SUBSCRIBE"));
             conection.send(queueSender.sendResult(userId));
             conection.send(new Message(MessageType.DISABLE_USER, " WE handed Result"));
-
-            Thread.currentThread().interrupt();
             System.err.println(" WE interrupt connection with id \n" + "" + userId + " and Socet Adress" + "" + conection.getRemoteSocetAdres());
-            conection.close();
-
+            Thread.currentThread().interrupt();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -37,7 +34,7 @@ public class DialogQueue implements Runnable {
 
     @Override
     public void run() {
-        while (!Thread.interrupted()) {
+        while (!Thread.currentThread().isInterrupted()) {
             dialog();
         }
     }
