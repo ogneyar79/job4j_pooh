@@ -1,4 +1,6 @@
-package model.broker;
+package model.serversender.roughcopy;
+
+import model.broker.BrokerMessage;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
