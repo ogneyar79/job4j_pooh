@@ -1,5 +1,6 @@
 package model.broker;
 
+import model.HandlerWithJson;
 import model.message.MessageB;
 
 import java.io.*;
@@ -13,6 +14,11 @@ public class BrockerServer implements Closeable {
     private final BufferedReader reader;
     private final BufferedWriter writer;
     private Socket socket;
+    private boolean destributeActive = true;
+
+    public void stopDestribute() {
+        this.destributeActive = false;
+    }
 
     public BrockerServer(ServerSocket server, BrokerMessage broker) {
         this.server = server;
@@ -34,7 +40,6 @@ public class BrockerServer implements Closeable {
         }
         return this.socket;
     }
-
 
     public void writeLine(String message) {
         try {
@@ -69,26 +74,29 @@ public class BrockerServer implements Closeable {
         return new BufferedReader(new InputStreamReader(socket.getInputStream()));
     }
 
-    public void excute() {
-        new Thread(() -> work(broker));
+    public void excute(HandlerWithJson handler) {
+        new Thread(() -> work(broker, handler));
     }
 
     public void excuteDestrebute() {
-        new Thread(() -> workDestrebute(broker));
+        new Thread(() -> workDestrebute());
     }
 
-    public void workDestrebute(BrokerMessage brokerMessage) {
-        broker.distribute();
-        broker.searchNewMessage();
+    public void workDestrebute() {
+        while (destributeActive) {
+            broker.distribute();
+            broker.searchNewMessage();
+        }
     }
-    public void work(BrokerMessage broker) {
+
+    public void work(BrokerMessage broker, HandlerWithJson handler) {
         while (!this.server.isClosed()) {
             getActiveSocet();
 
             String request = this.readLine();
             System.out.println("Request : " + request);
             if (request != null) {
-                MessageB message = broker.getHandler().parseJson(request);
+                MessageB message = handler.parseJson(request);
                 broker.insertFirst(message);
                 String response = " We got it";
                 this.writeLine(response);
