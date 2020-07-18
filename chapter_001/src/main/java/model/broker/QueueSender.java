@@ -13,20 +13,14 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class QueueSender implements IBrokerSender {
 
-    private final BrokerMessage brokerMessage;
     private final ConcurrentHashMap<String, ConcurrentLinkedQueue<MessageB>> queue;
     private final ConcurrentHashMap<String, String> subscriber;
-    // IChanalMessage chanal;
+
     HandlerWithJson model = new HandlerWithJson();
 
-    public QueueSender(BrokerMessage brokerMessage, ConcurrentHashMap<String, String> subscriber) {
-        this.brokerMessage = brokerMessage;
-        this.queue = brokerMessage.getQueue();
+    public QueueSender(ConcurrentHashMap<String, ConcurrentLinkedQueue<MessageB>> queue, ConcurrentHashMap<String, String> subscriber) {
+        this.queue = queue;
         this.subscriber = subscriber;
-    }
-
-    public void setSubscriber(String id, String subject) {
-        subscriber.put(id, subject);
     }
 
     public boolean checkSubscriberId(String id) {
@@ -48,10 +42,8 @@ public class QueueSender implements IBrokerSender {
         return model.konvertJson(message);
     }
 
-
     public Message sendResult(String id) {
         return checkMessage(id) ? new Message(MessageType.JSON, getJSon(id)) : new Message(MessageType.USER_INFO, " NO SIBSCRIBE NOW");
     }
-
 
 }

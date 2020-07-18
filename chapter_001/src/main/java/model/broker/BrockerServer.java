@@ -2,47 +2,98 @@ package model.broker;
 
 import model.message.MessageB;
 
+import java.io.*;
 import java.net.ServerSocket;
+import java.net.Socket;
 
-public class BrockerServer {
+public class BrockerServer implements Closeable {
 
     private final ServerSocket server;
     private final BrokerMessage broker;
+    private final BufferedReader reader;
+    private final BufferedWriter writer;
+    private Socket socket;
 
     public BrockerServer(ServerSocket server, BrokerMessage broker) {
         this.server = server;
         this.broker = broker;
+        try {
+            this.socket = getActiveSocet();
+            this.reader = createReader();
+            this.writer = createWriter();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Socket getActiveSocet() {
+        try {
+            this.socket = this.server.accept();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return this.socket;
+    }
+
+
+    public void writeLine(String message) {
+        try {
+            writer.write(message);
+            writer.newLine();
+            writer.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public String readLine() {
+        try {
+            return reader.readLine();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void close() throws IOException {
+        writer.close();
+        reader.close();
+        socket.close();
+    }
+
+    private BufferedWriter createWriter() throws IOException {
+        return new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+    }
+
+    private BufferedReader createReader() throws IOException {
+        return new BufferedReader(new InputStreamReader(socket.getInputStream()));
     }
 
     public void excute() {
         new Thread(() -> work(broker));
     }
 
-//    public BrockerServer(int port, HandlerWithJson handler, BrokerMessage broker, ServerSocket server, BrokerMessage broker1) {
-//        this.server = server;
-//        this.broker = broker1;
-//
-//        try (ServerSocket server = new ServerSocket(port)) {
-//            System.out.println("Server started!");
-//            try (BrokerMessage brok = new BrokerMessage(server, handler)) {
-//                work(brok);
-//            }
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
+    public void excuteDestrebute() {
+        new Thread(() -> workDestrebute(broker));
+    }
 
+    public void workDestrebute(BrokerMessage brokerMessage) {
+        broker.distribute();
+        broker.searchNewMessage();
+    }
     public void work(BrokerMessage broker) {
         while (!this.server.isClosed()) {
-            String request = broker.readLine();
+            getActiveSocet();
+
+            String request = this.readLine();
             System.out.println("Request : " + request);
-            MessageB message = broker.getHandler().parseJson(request);
-            broker.insertFirst(message);
-
-            String response = " We got it";
-            broker.writeLine(response);
-
-            System.out.println("Response : " + response);
+            if (request != null) {
+                MessageB message = broker.getHandler().parseJson(request);
+                broker.insertFirst(message);
+                String response = " We got it";
+                this.writeLine(response);
+                System.out.println("Response : " + response);
+            }
         }
     }
 }
