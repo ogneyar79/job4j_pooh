@@ -6,69 +6,34 @@ import model.message.MessageB;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Iterator;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class BrokerMessage implements IBroker, Closeable {
-
-    private final Socket socket;
-    private final BufferedReader reader;
-    private final BufferedWriter writer;
+public class BrokerMessage implements IBroker {
 
     private final HandlerWithJson handler;
 
-
     private Queue<MessageB> firstIn = new ConcurrentLinkedQueue();
-
     private ConcurrentHashMap<String, ConcurrentLinkedQueue<MessageB>> topicMap = new ConcurrentHashMap();
     private ConcurrentHashMap<String, ConcurrentLinkedQueue<MessageB>> queue = new ConcurrentHashMap();
-    private final ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> topicSubscriber = new ConcurrentHashMap<>();
+
+    private final TopicSender topicSender;
+    private final QueueSender queueSender;
+
+    private final SubscriberStore subscriberStore;
+
+    private final ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> topicSubscriber = new ConcurrentHashMap<>(); /// to[oq and QueSubscriber
 
     private volatile boolean changerTopic = false;
 
-    public BrokerMessage(ServerSocket server, HandlerWithJson handler) {
+    public BrokerMessage(HandlerWithJson handler, TopicSender topicSender, QueueSender queueSender, SubscriberStore subscriberStore) {
         this.handler = handler;
-        try {
-            this.socket = server.accept();
-            this.reader = createReader();
-            this.writer = createWriter();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public void writeLine(String message) {
-        try {
-            writer.write(message);
-            writer.newLine();
-            writer.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public String readLine() {
-        try {
-            return reader.readLine();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    public void close() throws IOException {
-        writer.close();
-        reader.close();
-        socket.close();
-    }
-
-    private BufferedWriter createWriter() throws IOException {
-        return new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-    }
-
-    private BufferedReader createReader() throws IOException {
-        return new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        this.topicSender = topicSender;
+        this.queueSender = queueSender;
+        this.subscriberStore = subscriberStore;
     }
 
     @Override
@@ -99,10 +64,29 @@ public class BrokerMessage implements IBroker, Closeable {
         }
     }
 
-    public void addNewTopic(String topic) {
-        topicMap.put(topic, new ConcurrentLinkedQueue<MessageB>());
-        topicSubscriber.put(topic, new ConcurrentLinkedQueue<String>());
+    public boolean searchNewMessage() {
+        if (this.isChangerTopic()) {
+            Set<String> keys = topicMap.keySet();      //     list of topic their names
+            Iterator<String> keysIterator = keys.iterator();
+            while (keysIterator.hasNext()) {          //         bypass    all topics
+                String topicKey = keysIterator.next();
+                if (!topicMap.get(topicKey).isEmpty()) {                    // if have massage at queue in this topic
+                    Queue<MessageB> messageBQueue = topicMap.get(topicKey);             // get queue message for our topic
+                    ConcurrentLinkedQueue<String> subscreber = this.topicSubscriber.get(topicMap);     // get all subscriber which subscribe for topic
+                    while (!messageBQueue.isEmpty()) {
+                        MessageB message = messageBQueue.poll();
+                        for (String sub : subscreber) {
+                            subscriberStore.getQueueMailBox(sub).add(message);              // add every subscriber message to his mailBox
+                        }
+                    }
+                }
+            }
+            this.setChangerTopic(false);
+            return true;
+        }
+        return false;
     }
+
 
     public void setChangerTopic(boolean changerTopic) {
         this.changerTopic = changerTopic;
@@ -114,21 +98,5 @@ public class BrokerMessage implements IBroker, Closeable {
 
     public HandlerWithJson getHandler() {
         return handler;
-    }
-
-    public Queue<MessageB> getFirstIn() {
-        return firstIn;
-    }
-
-    public ConcurrentHashMap<String, ConcurrentLinkedQueue<MessageB>> getTopicMap() {
-        return this.topicMap;
-    }
-
-    public ConcurrentHashMap<String, ConcurrentLinkedQueue<MessageB>> getQueue() {
-        return queue;
-    }
-
-    public ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> getTopicSubscriber() {
-        return topicSubscriber;
     }
 }
