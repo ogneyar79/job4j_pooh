@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class BrokerMessage implements IBroker {
 
-    private final HandlerWithJson handler;
+
 
     private Queue<MessageB> firstIn = new ConcurrentLinkedQueue();
     private ConcurrentHashMap<String, ConcurrentLinkedQueue<MessageB>> topicMap = new ConcurrentHashMap();
@@ -25,12 +25,11 @@ public class BrokerMessage implements IBroker {
 
     private final SubscriberStore subscriberStore;
 
-    private final ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> topicSubscriber = new ConcurrentHashMap<>(); /// to[oq and QueSubscriber
+    private final ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> topicSubscriber = new ConcurrentHashMap<>(); /// topic and QueSubscriber
 
     private volatile boolean changerTopic = false;
 
-    public BrokerMessage(HandlerWithJson handler, TopicSender topicSender, QueueSender queueSender, SubscriberStore subscriberStore) {
-        this.handler = handler;
+    public BrokerMessage(TopicSender topicSender, QueueSender queueSender, SubscriberStore subscriberStore) {
         this.topicSender = topicSender;
         this.queueSender = queueSender;
         this.subscriberStore = subscriberStore;
@@ -87,7 +86,6 @@ public class BrokerMessage implements IBroker {
         return false;
     }
 
-
     public void setChangerTopic(boolean changerTopic) {
         this.changerTopic = changerTopic;
     }
@@ -96,7 +94,4 @@ public class BrokerMessage implements IBroker {
         return changerTopic;
     }
 
-    public HandlerWithJson getHandler() {
-        return handler;
-    }
 }
