@@ -15,24 +15,20 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class BrokerMessage implements IBroker {
 
 
-
     private Queue<MessageB> firstIn = new ConcurrentLinkedQueue();
     private ConcurrentHashMap<String, ConcurrentLinkedQueue<MessageB>> topicMap = new ConcurrentHashMap();
     private ConcurrentHashMap<String, ConcurrentLinkedQueue<MessageB>> queue = new ConcurrentHashMap();
 
-    private final TopicSender topicSender;
-    private final QueueSender queueSender;
 
     private final SubscriberStore subscriberStore;
 
-    private final ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> topicSubscriber = new ConcurrentHashMap<>(); /// topic and QueSubscriber
+    private final ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> topicSubscriber; /// topic and QueSubscriber
 
     private volatile boolean changerTopic = false;
 
-    public BrokerMessage(TopicSender topicSender, QueueSender queueSender, SubscriberStore subscriberStore) {
-        this.topicSender = topicSender;
-        this.queueSender = queueSender;
+    public BrokerMessage(SubscriberStore subscriberStore, ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> topicSubscriber) {
         this.subscriberStore = subscriberStore;
+        this.topicSubscriber = topicSubscriber;
     }
 
     @Override
@@ -71,11 +67,11 @@ public class BrokerMessage implements IBroker {
                 String topicKey = keysIterator.next();
                 if (!topicMap.get(topicKey).isEmpty()) {                    // if have massage at queue in this topic
                     Queue<MessageB> messageBQueue = topicMap.get(topicKey);             // get queue message for our topic
-                    ConcurrentLinkedQueue<String> subscreber = this.topicSubscriber.get(topicMap);     // get all subscriber which subscribe for topic
+                    ConcurrentLinkedQueue<String> subscreber = this.topicSubscriber.get(topicKey);     // get all subscriber which subscribe for topic
                     while (!messageBQueue.isEmpty()) {
                         MessageB message = messageBQueue.poll();
                         for (String sub : subscreber) {
-                            subscriberStore.getQueueMailBox(sub).add(message);              // add every subscriber message to his mailBox
+                            subscriberStore.addMessage(sub, message);              // add every subscriber message to his mailBox
                         }
                     }
                 }
