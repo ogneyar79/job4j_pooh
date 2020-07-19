@@ -17,7 +17,6 @@ public class ServerWithClient implements IServerPro, Runnable {
 
     private final ModelGuiServer subConections;
 
-
     private final QueueSender queueSender;
     private final TopicSender topicSender;
 
@@ -97,18 +96,16 @@ public class ServerWithClient implements IServerPro, Runnable {
         // exit from method, delete connection   return String accept or not
     }
 
-
     public void dialogSubscriber(String subscriberId) {
 
         if (topicSender.checkSubscriberId(subscriberId)) {
             final Connection conectPrivate = subConections.getConnectionMap().get(subscriberId);
             new DialogTopic().dialog(conectPrivate, this.topicSender, subscriberId);
         }
-
         if (queueSender.checkSubscriberId(subscriberId)) {
             final Connection conectPrivate = subConections.getConnectionMap().get(subscriberId);
-            new Thread(new DialogQueue(conectPrivate, this.queueSender, subscriberId) {
-            }).start();// hand to Queue work
+            new DialogQueue().dialog(conectPrivate, this.queueSender, subscriberId);
+            // hand to Queue work
         }
     }
 
