@@ -13,8 +13,6 @@ public class QueueSender implements IBrokerSender {
     private final ConcurrentHashMap<String, ConcurrentLinkedQueue<MessageB>> queue;
     private final ConcurrentHashMap<String, String> subscriber;
 
-    //  HandlerWithJson model = new HandlerWithJson();
-
     public QueueSender(ConcurrentHashMap<String, ConcurrentLinkedQueue<MessageB>> queue, ConcurrentHashMap<String, String> subscriber) {
         this.queue = queue;
         this.subscriber = subscriber;
