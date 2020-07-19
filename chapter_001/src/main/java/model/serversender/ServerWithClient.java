@@ -1,35 +1,31 @@
-package model.server;
+package model.serversender;
 
 import model.broker.QueueSender;
 import model.broker.SubscriberStore;
 import model.broker.TopicSender;
-import model.connection.Conection;
+import model.connection.Connection;
 import model.connection.Message;
 import model.connection.MessageType;
-import model.server.*;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class ServerWithClient implements IServerPro, Runnable {
 
     private ServerSocket serverSocket;
     boolean isServerStart;
 
-    ModelGuiServer subConections;
+    private final ModelGuiServer subConections;
 
-    private final SubscriberStore subscriberTopicStore;
-    private final ConcurrentHashMap<String, String> subscriberQueue;
+
     private final QueueSender queueSender;
-    private final TopicSender sender;
+    private final TopicSender topicSender;
 
-    public ServerWithClient(SubscriberStore subscriberTopicStore, ConcurrentHashMap<String, String> subscriberQueue, QueueSender queueSender, TopicSender sender) {
-        this.subscriberTopicStore = subscriberTopicStore;
-        this.subscriberQueue = subscriberQueue;
+    public ServerWithClient(ModelGuiServer subConections, QueueSender queueSender, TopicSender topicSender) {
+        this.subConections = subConections;
         this.queueSender = queueSender;
-        this.sender = sender;
+        this.topicSender = topicSender;
     }
 
     @Override
@@ -54,7 +50,7 @@ public class ServerWithClient implements IServerPro, Runnable {
                 System.out.println(" Nothing to stop, The Server does not work");
             }
         } catch (IOException e) {
-            System.out.println(" NO allow to stop server");
+            System.out.println(" NO allow to stop serversender");
             e.printStackTrace();
         }
     }
@@ -64,33 +60,33 @@ public class ServerWithClient implements IServerPro, Runnable {
         while (!Thread.currentThread().isInterrupted()) {
             try {
                 Socket socket = serverSocket.accept();
-                Conection conection = new Conection(socket);
-                String id = getIdConnection(conection);
+                Connection connection = new Connection(socket);
+                String id = getIdConnection(connection);
                 if (!id.equals("")) {
-                    conection.send(new Message(MessageType.ID_ACCEPTED));
-                    dialogSubscriber(conection, id);
+                    connection.send(new Message(MessageType.ID_ACCEPTED));
+                    dialogSubscriber(id);
                     deleteConnection(id);
                 } else {
-                    conection.send(new Message(MessageType.USER_INFO, "This id used or incorrect id"));
+                    connection.send(new Message(MessageType.USER_INFO, "This id used or incorrect id"));
                 }
             } catch (IOException e) {
-                System.err.println(" No connection with server");
+                System.err.println(" No connection with serversender");
                 e.printStackTrace();
             }
         }
     }
 
-    public String getIdConnection(Conection conection) {
+    public String getIdConnection(Connection connection) {
         String result = "";
         int count = 0;
         while (count != 3) {
             try {
-                conection.send(new Message(MessageType.REQUEST_SUBSCRIBER_ID));
+                connection.send(new Message(MessageType.REQUEST_SUBSCRIBER_ID));
                 count++;
-                Message responseMessage = conection.receive();
+                Message responseMessage = connection.receive();
                 final String subscriberId = responseMessage.getTextMessage();  // return id?
                 if (responseMessage.getTypeMessage() == MessageType.SUBSCRIBER_ID && subscriberId != null && !subConections.getSubscribersConect().containsKey(subscriberId)) {
-                    subConections.addSub(subscriberId, conection);
+                    subConections.addSub(subscriberId, connection);
                     return subscriberId;
                 }
             } catch (Exception e) {
@@ -103,24 +99,23 @@ public class ServerWithClient implements IServerPro, Runnable {
     }
 
 
-    public void dialogSubscriber(Conection conection, String subscriberId) {
+    public void dialogSubscriber(String subscriberId) {
 
-        if (subscriberTopicStore.getSubscriber().containsKey(subscriberId)) {
-            final Conection conectPrivate = subConections.getSubscribersConect().get(subscriberId);
-            new DialogTopic(conectPrivate, sender, subscriberId).dialog();
+        if (topicSender.checkSubscriberId(subscriberId)) {
+            final Connection conectPrivate = subConections.getSubscribersConect().get(subscriberId);
+            new DialogTopic(conectPrivate, this.topicSender, subscriberId).dialog();
         }
 
-        if (subscriberQueue.containsKey(subscriberId)) {
-            final Conection conectPrivate = subConections.getSubscribersConect().get(subscriberId);
-            new Thread(new DialogQueue(conectPrivate, queueSender, subscriberId) {
+        if (queueSender.checkSubscriberId(subscriberId)) {
+            final Connection conectPrivate = subConections.getSubscribersConect().get(subscriberId);
+            new Thread(new DialogQueue(conectPrivate, this.queueSender, subscriberId) {
             }).start();// hand to Queue work
         }
     }
 
-
     @Override
     public void deleteConnection(String id) {
-        Conection currentConnection = subConections.getSubscribersConect().get(id);
+        Connection currentConnection = subConections.getSubscribersConect().get(id);
         subConections.removeConectionSub(id);
         System.err.println(" WE interrupt connection with id \n" + "" + id + " and Socet Adress" + "" + currentConnection.getRemoteSocetAdres());
         try {
