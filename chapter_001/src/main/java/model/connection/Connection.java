@@ -7,13 +7,13 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.SocketAddress;
 
-public class Conection implements Closeable {
+public class Connection implements Closeable {
 
     private final Socket socket;
     private final ObjectOutputStream out;
     private final ObjectInputStream in;
 
-    public Conection(Socket socket ) throws IOException {
+    public Connection(Socket socket ) throws IOException {
         this.socket = socket;
         this.out = new ObjectOutputStream(socket.getOutputStream());
         this.in = new ObjectInputStream(socket.getInputStream());
