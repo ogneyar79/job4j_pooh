@@ -25,12 +25,8 @@ public class TopicSender implements IBrokerSender {
         return !subscriberStore.getMailBoxes().get(id).isEmpty();
     }
 
-    private MessageB getMessageFromQueue(String id) {
-        return subscriberStore.getMessage(id);
-    }
-
     private String getJSon(String id) {
-        MessageB message = getMessageFromQueue(id);
+        MessageB message = subscriberStore.getMessage(id);
         return new HandlerWithJson().konvertJson(message);
     }
 
