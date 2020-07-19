@@ -17,8 +17,9 @@ public class StartAplicathion {
     }
 
     public void startAplication(HandlerWithJson handler) {
-        brockerServer.excuteDestrebute();
         brockerServer.excute(handler);
+        brockerServer.excuteDestrebute();
+
     }
 
     public void startSending(int port, ServerWithClient sender) {

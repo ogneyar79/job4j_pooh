@@ -1,7 +1,6 @@
 package model.serversender;
 
 import model.broker.QueueSender;
-import model.broker.SubscriberStore;
 import model.broker.TopicSender;
 import model.connection.Connection;
 import model.connection.Message;
@@ -85,7 +84,7 @@ public class ServerWithClient implements IServerPro, Runnable {
                 count++;
                 Message responseMessage = connection.receive();
                 final String subscriberId = responseMessage.getTextMessage();  // return id?
-                if (responseMessage.getTypeMessage() == MessageType.SUBSCRIBER_ID && subscriberId != null && !subConections.getSubscribersConect().containsKey(subscriberId)) {
+                if (responseMessage.getTypeMessage() == MessageType.SUBSCRIBER_ID && subscriberId != null && !subConections.getConnectionMap().containsKey(subscriberId)) {
                     subConections.addSub(subscriberId, connection);
                     return subscriberId;
                 }
@@ -102,12 +101,12 @@ public class ServerWithClient implements IServerPro, Runnable {
     public void dialogSubscriber(String subscriberId) {
 
         if (topicSender.checkSubscriberId(subscriberId)) {
-            final Connection conectPrivate = subConections.getSubscribersConect().get(subscriberId);
+            final Connection conectPrivate = subConections.getConnectionMap().get(subscriberId);
             new DialogTopic(conectPrivate, this.topicSender, subscriberId).dialog();
         }
 
         if (queueSender.checkSubscriberId(subscriberId)) {
-            final Connection conectPrivate = subConections.getSubscribersConect().get(subscriberId);
+            final Connection conectPrivate = subConections.getConnectionMap().get(subscriberId);
             new Thread(new DialogQueue(conectPrivate, this.queueSender, subscriberId) {
             }).start();// hand to Queue work
         }
@@ -115,7 +114,7 @@ public class ServerWithClient implements IServerPro, Runnable {
 
     @Override
     public void deleteConnection(String id) {
-        Connection currentConnection = subConections.getSubscribersConect().get(id);
+        Connection currentConnection = subConections.getConnectionMap().get(id);
         subConections.removeConectionSub(id);
         System.err.println(" WE interrupt connection with id \n" + "" + id + " and Socet Adress" + "" + currentConnection.getRemoteSocetAdres());
         try {

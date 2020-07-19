@@ -1,6 +1,6 @@
 package model.subscribers;
 
-import model.connection.Conection;
+import model.connection.Connection;
 import model.connection.Message;
 import model.connection.MessageType;
 
@@ -9,7 +9,7 @@ import java.net.Socket;
 
 public class SuscriberN implements ISubscriber {
 
-    private Conection conection;
+    private Connection connection;
     private final String id;
     private final String addressServer;
     private final int port;
@@ -36,8 +36,8 @@ public class SuscriberN implements ISubscriber {
                 Socket socket = null;
                 try {
                     socket = new Socket(addressServer, port);
-                    this.conection = new Conection(socket);
-                    Message message = conection.receive();
+                    this.connection = new Connection(socket);
+                    Message message = connection.receive();
                     if (message.getTextMessage() != null) {
                         isConnect = true;
                         return message;
@@ -60,7 +60,7 @@ public class SuscriberN implements ISubscriber {
                 send(new Message(MessageType.ID_USED, this.id));
             }
             try {
-                Message message1 = conection.receive();
+                Message message1 = connection.receive();
                 if (message1.getTypeMessage() == MessageType.JSON) {
                     System.out.println("Successful");
                     onMessage(message1.getTextMessage());
@@ -85,7 +85,7 @@ public class SuscriberN implements ISubscriber {
     @Override
     public void send(Message message) {
         try {
-            this.conection.send(message);
+            this.connection.send(message);
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -9,14 +9,12 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class SubscriberStore {
 
     // подписчикId - топик
-    private final ConcurrentHashMap<String, String> subscriber;
-
-
+    private final ConcurrentHashMap<String, String> subscribers;
     // подписчик - очерьдь писем
     private final ConcurrentHashMap<String, Queue<MessageB>> mailBoxes;
 
-    public SubscriberStore(ConcurrentHashMap<String, String> subscriber, ConcurrentHashMap<String, Queue<MessageB>> mailBoxes) {
-        this.subscriber = subscriber;
+    public SubscriberStore(ConcurrentHashMap<String, String> subscribers, ConcurrentHashMap<String, Queue<MessageB>> mailBoxes) {
+        this.subscribers = subscribers;
         this.mailBoxes = mailBoxes;
     }
 
@@ -30,7 +28,7 @@ public class SubscriberStore {
     }
 
     public void addSubscriber(String id, String topic) {
-        subscriber.put(id, topic);
+        subscribers.put(id, topic);
         if (!mailBoxes.containsKey(id)) {
             createMailBox(id);
         }
@@ -38,12 +36,12 @@ public class SubscriberStore {
 
 
     public void deleteSubscriber(String id) {
-        subscriber.remove(id);
+        subscribers.remove(id);
         mailBoxes.remove(id);
     }
 
-    public ConcurrentHashMap<String, String> getSubscriber() {
-        return subscriber;
+    public ConcurrentHashMap<String, String> getSubscribers() {
+        return subscribers;
     }
 
     public ConcurrentHashMap<String, Queue<MessageB>> getMailBoxes() {

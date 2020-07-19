@@ -1,4 +1,4 @@
-package model.server;
+package model.serversender;
 
 public interface IServerPro {
 

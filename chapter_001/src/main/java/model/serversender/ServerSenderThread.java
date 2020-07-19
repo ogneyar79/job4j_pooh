@@ -9,5 +9,4 @@ public class ServerSenderThread extends Thread {
         this.senderClient.startServer(port);
         this.start();
     }
-
 }

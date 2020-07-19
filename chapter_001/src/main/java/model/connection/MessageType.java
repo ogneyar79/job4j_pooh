@@ -1,6 +1,6 @@
 package model.connection;
 
-public enum  MessageType {
+public enum MessageType {
     REQUEST_SUBSCRIBER_ID,
     TEXT_MESSAGE,
     SUBSCRIBER_ID,
@@ -10,5 +10,4 @@ public enum  MessageType {
     USER_INFO,
     JSON,
     DISABLE_USER;
-
 }
