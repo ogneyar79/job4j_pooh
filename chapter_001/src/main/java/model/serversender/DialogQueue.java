@@ -15,7 +15,6 @@ public class DialogQueue {
             connection.send(queueSender.sendResult(userId));
             connection.send(new Message(MessageType.DISABLE_USER, " WE handed Result"));
             System.err.println(" WE interrupt connection with id \n" + "" + userId + " and Socet Adress" + "" + connection.getRemoteSocetAdres());
-            Thread.currentThread().interrupt();
         } catch (IOException e) {
             e.printStackTrace();
         }
