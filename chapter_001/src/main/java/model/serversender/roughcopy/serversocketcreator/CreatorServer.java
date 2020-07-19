@@ -1,19 +1,17 @@
-package model.server.roughcopy;
-
-import model.server.roughcopy.ClientSender;
+package model.serversender.roughcopy.serversocketcreator;
 
 import java.io.*;
+import java.net.ServerSocket;
 import java.net.Socket;
 
-public class SenderSimple implements ClientSender, Closeable {
-
+public class CreatorServer implements Closeable{
     private final Socket socket;
     private final BufferedReader reader;
     private final BufferedWriter writer;
 
-    public SenderSimple(String ip, int port) {
+    public CreatorServer(ServerSocket server) {
         try {
-            this.socket = new Socket(ip, port);
+            this.socket = server.accept();
             this.reader = createReader();
             this.writer = createWriter();
         } catch (IOException e) {
@@ -39,15 +37,6 @@ public class SenderSimple implements ClientSender, Closeable {
         }
     }
 
-    private BufferedWriter createWriter() throws IOException {
-        return new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-    }
-
-
-    private BufferedReader createReader() throws IOException {
-        return new BufferedReader(new InputStreamReader(socket.getInputStream()));
-    }
-
     @Override
     public void close() throws IOException {
         writer.close();
@@ -55,8 +44,11 @@ public class SenderSimple implements ClientSender, Closeable {
         socket.close();
     }
 
-    @Override
-    public void send(String message) {
-        writeLine(message);
+    private BufferedWriter createWriter() throws IOException {
+        return new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+    }
+
+    private BufferedReader createReader() throws IOException {
+        return new BufferedReader(new InputStreamReader(socket.getInputStream()));
     }
 }

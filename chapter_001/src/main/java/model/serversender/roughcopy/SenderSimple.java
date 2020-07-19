@@ -1,17 +1,17 @@
-package model.serversocketcreator;
+package model.serversender.roughcopy;
 
 import java.io.*;
-import java.net.ServerSocket;
 import java.net.Socket;
 
-public class CreatorServer implements Closeable{
+public class SenderSimple implements ClientSender, Closeable {
+
     private final Socket socket;
     private final BufferedReader reader;
     private final BufferedWriter writer;
 
-    public CreatorServer(ServerSocket server) {
+    public SenderSimple(String ip, int port) {
         try {
-            this.socket = server.accept();
+            this.socket = new Socket(ip, port);
             this.reader = createReader();
             this.writer = createWriter();
         } catch (IOException e) {
@@ -37,6 +37,15 @@ public class CreatorServer implements Closeable{
         }
     }
 
+    private BufferedWriter createWriter() throws IOException {
+        return new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+    }
+
+
+    private BufferedReader createReader() throws IOException {
+        return new BufferedReader(new InputStreamReader(socket.getInputStream()));
+    }
+
     @Override
     public void close() throws IOException {
         writer.close();
@@ -44,11 +53,8 @@ public class CreatorServer implements Closeable{
         socket.close();
     }
 
-    private BufferedWriter createWriter() throws IOException {
-        return new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-    }
-
-    private BufferedReader createReader() throws IOException {
-        return new BufferedReader(new InputStreamReader(socket.getInputStream()));
+    @Override
+    public void send(String message) {
+        writeLine(message);
     }
 }

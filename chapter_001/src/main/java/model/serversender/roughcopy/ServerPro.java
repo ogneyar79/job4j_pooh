@@ -1,11 +1,11 @@
-package model.server.roughcopy;
+package model.serversender.roughcopy;
 
 import model.broker.QueueSender;
-import model.connection.Conection;
+import model.connection.Connection;
 import model.connection.Message;
 import model.connection.MessageType;
-import model.server.IServerPro;
-import model.server.ModelGuiServer;
+import model.serversender.IServerPro;
+import model.serversender.ModelGuiServer;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -46,7 +46,7 @@ public class ServerPro implements IServerPro {
             }
 
         } catch (IOException e) {
-            System.out.println(" NO allow to stop server");
+            System.out.println(" NO allow to stop serversender");
             e.printStackTrace();
         }
     }
@@ -58,7 +58,7 @@ public class ServerPro implements IServerPro {
                 Socket socket = serverSocket.accept();
                 new Thread(new ServerThread(socket)).start();
             } catch (IOException e) {
-                System.err.println(" No connection with server");
+                System.err.println(" No connection with serversender");
                 e.printStackTrace();
             }
         }
@@ -66,7 +66,7 @@ public class ServerPro implements IServerPro {
 
     @Override
     public void deleteConnection(String id) {
-        Conection currentConnection = subConections.getSubscribersConect().get(id);
+        Connection currentConnection = subConections.getConnectionMap().get(id);
         subConections.removeConectionSub(id);
         Thread.currentThread().interrupt();
         System.err.println(" WE interrupt connection with id \n" + "" + id + " and Socet Adress" + "" + currentConnection.getRemoteSocetAdres());
@@ -85,7 +85,7 @@ public class ServerPro implements IServerPro {
             this.socket = socket;
         }
 
-        public Message requestAddSubscriber(Conection conection) {
+        public Message requestAddSubscriber(Connection connection) {
             int count = 0;
             while (true) {
                 if (count > 3) {
@@ -93,15 +93,15 @@ public class ServerPro implements IServerPro {
                     return new Message(MessageType.DISABLE_USER, " You exceeded amount Connection We break connection");
                 }
                 try {
-                    conection.send(new Message(MessageType.REQUEST_SUBSCRIBER_ID));
-                    Message responseMessage = conection.receive();
+                    connection.send(new Message(MessageType.REQUEST_SUBSCRIBER_ID));
+                    Message responseMessage = connection.receive();
                     String subscriberId = responseMessage.getTextMessage();
-                    if (responseMessage.getTypeMessage() == MessageType.SUBSCRIBER_ID && subscriberId != null && !subConections.getSubscribersConect().containsKey(subscriberId)) {
-                        subConections.addSub(subscriberId, conection);
-                        conection.send(new Message(MessageType.ID_ACCEPTED));
+                    if (responseMessage.getTypeMessage() == MessageType.SUBSCRIBER_ID && subscriberId != null && !subConections.getConnectionMap().containsKey(subscriberId)) {
+                        subConections.addSub(subscriberId, connection);
+                        connection.send(new Message(MessageType.ID_ACCEPTED));
                         return new Message(MessageType.ID_USED, subscriberId);
                     } else {
-                        conection.send(new Message(MessageType.ID_USED));
+                        connection.send(new Message(MessageType.ID_USED));
                         count++;
                     }
                 } catch (Exception e) {
@@ -110,29 +110,29 @@ public class ServerPro implements IServerPro {
             }
         }
 
-        public void communicateWithClient(Conection conection, Message messageId) {
+        public void communicateWithClient(Connection connection, Message messageId) {
             while (!Thread.interrupted()) {
                 String userId = messageId.getTextMessage();
                 if (queueSender.checkSubscriberId(userId)) {
                     try {
-                        conection.send(new Message(MessageType.USER_INFO, " WE CHECK Your SUBSCRIBE"));
-                        conection.send(queueSender.sendResult(userId));
-                        conection.send(new Message(MessageType.DISABLE_USER, " WE handed Result"));
+                        connection.send(new Message(MessageType.USER_INFO, " WE CHECK Your SUBSCRIBE"));
+                        connection.send(queueSender.sendResult(userId));
+                        connection.send(new Message(MessageType.DISABLE_USER, " WE handed Result"));
                         deleteConnection(userId);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 } else {
                     try {
-                        conection.send(new Message(MessageType.USER_INFO, "No SUBSCRIBER WITH ID"));
-                        conection.send(new Message(MessageType.REFUSING, "REFUSE"));
+                        connection.send(new Message(MessageType.USER_INFO, "No SUBSCRIBER WITH ID"));
+                        connection.send(new Message(MessageType.REFUSING, "REFUSE"));
                         deleteConnection(userId);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
                 try {
-                    Message message = conection.receive();
+                    Message message = connection.receive();
                     if (message.getTypeMessage() == MessageType.DISABLE_USER) {
                         deleteConnection(userId);
                     }
@@ -145,9 +145,9 @@ public class ServerPro implements IServerPro {
         @Override
         public void run() {
             try {
-                Conection conection = new Conection(socket);
-                Message messageId = requestAddSubscriber(conection);
-                communicateWithClient(conection, messageId);
+                Connection connection = new Connection(socket);
+                Message messageId = requestAddSubscriber(connection);
+                communicateWithClient(connection, messageId);
             } catch (IOException e) {
                 System.err.println(" ERROR during Communicate Server and Subscriber \n");
                 e.printStackTrace();
