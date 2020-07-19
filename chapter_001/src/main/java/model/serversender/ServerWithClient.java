@@ -102,7 +102,7 @@ public class ServerWithClient implements IServerPro, Runnable {
 
         if (topicSender.checkSubscriberId(subscriberId)) {
             final Connection conectPrivate = subConections.getConnectionMap().get(subscriberId);
-            new DialogTopic(conectPrivate, this.topicSender, subscriberId).dialog();
+            new DialogTopic().dialog(conectPrivate, this.topicSender, subscriberId);
         }
 
         if (queueSender.checkSubscriberId(subscriberId)) {
