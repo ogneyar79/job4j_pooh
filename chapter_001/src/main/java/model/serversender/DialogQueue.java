@@ -7,20 +7,9 @@ import model.connection.MessageType;
 
 import java.io.IOException;
 
-public class DialogQueue implements Runnable {
+public class DialogQueue {
 
-    private final Connection connection;
-    private final QueueSender queueSender;
-    private final String userId;
-
-    public DialogQueue(Connection connection, QueueSender queueSender, String userId) {
-        this.connection = connection;
-
-        this.queueSender = queueSender;
-        this.userId = userId;
-    }
-
-    public void dialog() {
+    public void dialog(Connection connection, QueueSender queueSender, String userId) {
         try {
             connection.send(new Message(MessageType.USER_INFO, " WE CHECK Your SUBSCRIBE"));
             connection.send(queueSender.sendResult(userId));
@@ -29,13 +18,6 @@ public class DialogQueue implements Runnable {
             Thread.currentThread().interrupt();
         } catch (IOException e) {
             e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void run() {
-        while (!Thread.currentThread().isInterrupted()) {
-            dialog();
         }
     }
 }
