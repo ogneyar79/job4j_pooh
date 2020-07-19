@@ -9,18 +9,7 @@ import java.io.IOException;
 
 public class DialogTopic {
 
-    private final Connection connection;
-    private final TopicSender sender;
-    private final String userId;
-
-
-    public DialogTopic(Connection connection, TopicSender sender, String userId) {
-        this.connection = connection;
-        this.sender = sender;
-        this.userId = userId;
-    }
-
-    public void dialog() {
+    public void dialog(Connection connection, TopicSender sender, String userId) {
         try {
             connection.send(new Message(MessageType.USER_INFO, " WE CHECK Your SUBSCRIBE"));
             while (sender.checkMessage(userId)) {
