@@ -1,32 +1,23 @@
 package model.broker;
 
-import model.HandlerWithJson;
+import
+        model.HandlerWithJson;
 import model.connection.Message;
 import model.connection.MessageType;
 import model.message.MessageB;
 
-import java.util.Iterator;
-import java.util.Queue;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-
 public class TopicSender implements IBrokerSender {
-
-
-    HandlerWithJson model = new HandlerWithJson();
 
     // String topic and queue different message
 
     private final SubscriberStore subscriberStore;
-
 
     public TopicSender(SubscriberStore subscriberStore) {
         this.subscriberStore = subscriberStore;
     }
 
     public boolean checkSubscriberId(String id) {
-        return subscriberStore.getSubscriber().containsKey(id);
+        return subscriberStore.getSubscribers().containsKey(id);
     }
 
     //checking message from mailBox
@@ -35,12 +26,12 @@ public class TopicSender implements IBrokerSender {
     }
 
     private MessageB getMessageFromQueue(String id) {
-        return subscriberStore.getMailBoxes().get(id).poll();
+        return subscriberStore.getMessage(id);
     }
 
     private String getJSon(String id) {
         MessageB message = getMessageFromQueue(id);
-        return model.konvertJson(message);
+        return new HandlerWithJson().konvertJson(message);
     }
 
     @Override
