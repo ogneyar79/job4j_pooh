@@ -1,16 +1,13 @@
 package model.broker;
 
-import model.HandlerWithJson;
 import model.message.MessageB;
 
-import java.io.*;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.Iterator;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.stream.Stream;
 
 public class BrokerMessage implements IBroker {
 
@@ -80,6 +77,16 @@ public class BrokerMessage implements IBroker {
             return true;
         }
         return false;
+    }
+
+    // searchNewMessage change here
+    public void addMessageToMailbox() {
+        if (this.isChangerTopic()) {
+            topicMap.keySet().stream().filter(topicKey -> !this.topicMap.get(topicKey).isEmpty())
+                    .forEach(topicKey -> Stream.generate(topicMap.get(topicKey)::poll).limit(topicMap.get(topicKey).size()).
+                            forEach(messageB -> this.topicSubscriber.get(topicKey).stream().forEach(id -> subscriberStore.addMessage(id, messageB))));
+            this.setChangerTopic(false);
+        }
     }
 
     public void setChangerTopic(boolean changerTopic) {
