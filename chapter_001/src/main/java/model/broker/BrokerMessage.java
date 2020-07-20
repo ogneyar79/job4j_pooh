@@ -3,7 +3,6 @@ package model.broker;
 import model.message.MessageB;
 
 import java.util.Iterator;
-import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -84,9 +83,9 @@ public class BrokerMessage implements IBroker {
     public void addMessageToMailbox() {
         if (this.isChangerTopic()) {
             topicMap.keySet().stream().filter(topicKey -> !this.topicMap.get(topicKey).isEmpty())
-                    .forEach(topicKey -> Stream.generate(topicMap.get(topicKey)::poll).limit(topicMap.get(topicKey).size()).
-                            forEach(messageB -> this.topicSubscriber.get(topicKey).stream()
-                                    .filter(Objects::nonNull).forEach(id -> subscriberStore.addMessage(id, messageB))));
+                    .forEach(topicKey -> Stream.generate(topicMap.get(topicKey)::poll).limit(topicMap.get(topicKey).size())
+                            .forEach(messageB -> topicSubscriber.keySet().stream().filter(key -> !topicSubscriber.get(key).isEmpty())
+                                    .forEach(key -> topicSubscriber.get(key).stream().forEach(id -> subscriberStore.addMessage(id, messageB)))));
             this.setChangerTopic(false);
         }
     }
