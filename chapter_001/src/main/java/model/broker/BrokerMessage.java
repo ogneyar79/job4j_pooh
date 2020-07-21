@@ -4,7 +4,6 @@ import model.message.MessageB;
 
 import java.util.Iterator;
 import java.util.Queue;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Stream;
@@ -58,8 +57,7 @@ public class BrokerMessage implements IBroker {
 
     public boolean searchNewMessage() {
         if (this.isChangerTopic()) {
-            Set<String> keys = topicMap.keySet();      //     list of topic their names
-            Iterator<String> keysIterator = keys.iterator();
+            Iterator<String> keysIterator = topicMap.keySet().iterator();
             while (keysIterator.hasNext()) {          //         bypass    all topics
                 String topicKey = keysIterator.next();
                 if (!topicMap.get(topicKey).isEmpty()) {                    // if have massage at queue in this topic
@@ -82,10 +80,21 @@ public class BrokerMessage implements IBroker {
     // searchNewMessage change here
     public void addMessageToMailbox() {
         if (this.isChangerTopic()) {
-            topicMap.keySet().stream().filter(topicKey -> !this.topicMap.get(topicKey).isEmpty())
+            topicMap.keySet().stream().filter(topicKey -> !topicMap.get(topicKey).isEmpty())
                     .forEach(topicKey -> Stream.generate(topicMap.get(topicKey)::poll).limit(topicMap.get(topicKey).size())
                             .forEach(messageB -> topicSubscriber.keySet().stream().filter(key -> !topicSubscriber.get(key).isEmpty())
                                     .forEach(key -> topicSubscriber.get(key).stream().forEach(id -> subscriberStore.addMessage(id, messageB)))));
+            this.setChangerTopic(false);
+        }
+    }
+
+
+    public void expirement() {
+        if (this.isChangerTopic()) {
+            topicMap.keySet().stream().filter(topicKey -> !topicMap.get(topicKey).isEmpty())
+                    .map(topicKey -> topicMap.get(topicKey)).forEach(queue -> queue.stream()
+                           .forEach(messageB -> topicSubscriber.keySet().stream().filter(key -> !topicSubscriber.get(key).isEmpty())
+                                   .forEach(key -> topicSubscriber.get(key).stream().forEach(id -> subscriberStore.addMessage(id, messageB)))));
             this.setChangerTopic(false);
         }
     }
